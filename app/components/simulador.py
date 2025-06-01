@@ -8,7 +8,7 @@ Lógica de simulación
 '''
 # components/simulador.py
 from core.Math_ellipse import generar_elipse_desde_rut
-from core.Collision_ellipse import hay_colision
+from core.collision.CollisionDetection import hay_colision
 
 def procesar_ruts(ruts):
     """

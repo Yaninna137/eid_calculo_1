@@ -12,7 +12,7 @@ Archivo de lógica matemática para el cálculo de una elipse central:
 """
 
 from dataclasses import dataclass
-PI = 3.141592653589793 
+from math import pi
 
 @dataclass
 class Elipse:
@@ -64,7 +64,7 @@ class Elipse:
     def calcular_puntos(self, n=100):
         puntos = []
         for i in range(n):
-            angulo = 2 * PI * i / n
+            angulo = 2 * pi * i / n
             x = self.h + (self.a * self.seno(angulo) if self.orientacion == "horizontal" else self.b * self.coseno(angulo))
             y = self.k + (self.b * self.coseno(angulo) if self.orientacion == "horizontal" else self.a * self.seno(angulo))
             puntos.append((x, y))
@@ -79,10 +79,10 @@ class Elipse:
         return result
     
     def normalize_radians(self,x):
-        while x > PI:
-            x -= 2 * PI
-        while x < -PI:
-            x += 2 * PI
+        while x > pi:
+            x -= 2 * pi
+        while x < -pi:
+            x += 2 * pi
         return x
     
     def seno(self,x, terms=10):
@@ -107,7 +107,7 @@ class Elipse:
         '''
          Formula de área elipse : π * a * b 
         '''
-        return round(PI * self.a * self.b, 4)
+        return round(pi * self.a * self.b, 4)
 
 def generar_elipse_desde_rut(rut: str, grupo_impar=True) -> Elipse:
     digitos = [int(c) for c in rut if c.isdigit()]

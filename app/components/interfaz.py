@@ -9,8 +9,9 @@ from components.estilo import estilo_add
 from components.rut_parser import limpiar_ruts, es_rut_valido, generar_ruts_validos
 from components.Contenedor import mostrar_tarjeta_izquierda, mostrar_entrada_ruts, mostrar_columna_acciones
 from components.simulador import procesar_ruts, analizar_colisiones
-from core.Graph_ellipse import Grafico_3D_multiple, grafico_2d_simple,grafico_2d_interactivo
+from core.Graph_ellipse import Grafico_3D_multiple, grafico_2d_simple, grafico_2d_interactivo
 from core.Items_ellipse import ElipseVisual
+from core.collision.CollisionAnalysis import tipo_colision, analizar_colision_detallada # Importamos las nuevas funciones
 
 def mostrar_interfaz():
     st.set_page_config(page_title="Simulador de Trayectorias Dron - RUT", layout="wide")
@@ -48,10 +49,10 @@ def mostrar_interfaz():
         mostrar_datos(elipses, ruts_limpios)
 
 
-def mostrar_datos(elipses,ruts_limpios):
-
+def mostrar_datos(elipses, ruts_limpios):
     st.markdown("---")
     tab1, tab2 = st.tabs(["Datos de elipses", "Gráficos y Colisiones"])
+    
     with tab1:
         st.markdown(
             """
@@ -61,7 +62,7 @@ def mostrar_datos(elipses,ruts_limpios):
                 En esta sección encontrarás los detalles técnicos de cada elipse generada, incluyendo vértices, focos y parámetros calculados a partir del RUT del dron.
             </p>
             </div>
-            """,unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         
         for idx, elipse in enumerate(elipses):
             col1, col2 = st.columns([2, 3])
@@ -79,51 +80,69 @@ def mostrar_datos(elipses,ruts_limpios):
                         <img src="data:image/png;base64,{img_base64}" width="400", height=400"/>
                         <span style='font-size: 18px; color: gray; display: block; margin-top: 8px;'>Gráfica 2D</span>
                     </div>
-                    """,unsafe_allow_html=True) 
-        with tab2:
-            st.markdown(
-            """
-            <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-            <h2 style='margin-bottom: 5px; color: white; text-align: center;'>Comparación visual y detección de colisiones</h2>
-            <p style='font-size: 18px; color: gray; text-align: center;'>
-                Sección visual de grafica 2D, 3D, colision(si existe)
-            </p>
-            </div>
-            """,unsafe_allow_html=True)
+                    """, unsafe_allow_html=True) 
+    
+    with tab2:
+        st.markdown(
+        """
+        <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+        <h2 style='margin-bottom: 5px; color: white; text-align: center;'>Comparación visual y detección de colisiones</h2>
+        <p style='font-size: 18px; color: gray; text-align: center;'>
+            Sección visual de grafica 2D, 3D, colision(si existe)
+        </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-            col1, col2 = st.columns([2, 2])
-            with col1:
-                fig2d = grafico_2d_interactivo(elipses, ruts_limpios)
-                st.plotly_chart(fig2d, use_container_width=True)
+        col1, col2 = st.columns([2, 2])
+        with col1:
+            fig2d = grafico_2d_interactivo(elipses, ruts_limpios)
+            st.plotly_chart(fig2d, use_container_width=True, key="graf2d_tab2")
 
-            with col2:
-                fig3d = Grafico_3D_multiple(elipses, ruts_limpios)
-                st.plotly_chart(fig3d, use_container_width=True)
-            st.markdown("---")
-            st.markdown("""<h4 style="color: #ff6f61" >Resultados de colisión</h4>""", unsafe_allow_html=True)
+        with col2:
+            fig3d = Grafico_3D_multiple(elipses, ruts_limpios)
+            st.plotly_chart(fig3d, use_container_width=True, key="graf3d_tab2")
+        
+        st.markdown("---")
+        st.markdown("""<h4 style="color: #ff6f61" >Resultados de colisión</h4>""", unsafe_allow_html=True)
 
-            resultados, total_colisiones,total_Sin_coliciones  = analizar_colisiones(elipses,ruts_limpios)
+        resultados, total_colisiones, total_Sin_coliciones = analizar_colisiones(elipses, ruts_limpios)
 
-            for r in resultados:
-                estado  = "❌ Colisión " if r["colision"] else "✅ Sin colisión"
-                mensaje = f"- {r['rut1']} vs {r['rut2']}: {estado}"
-                if r["colision"]:
-                    st.error(f"{estado} : {mensaje}")
-                else:
-                    st.success(f"{estado} : {mensaje}")
+        # Mostrar resultados detallados de colisiones
+        for r in resultados:
+            estado = "❌ Colisión " if r["colision"] else "✅ Sin colisión"
+            mensaje = f"- {r['rut1']} vs {r['rut2']}: {estado}"
             
-            st.markdown(
-                f""" 
-                <div style="font-size:16px">
-                    <p><strong>Total de operaciones por detección de colisiones:</strong> {len(elipses) * (len(elipses) - 1) // 2}</p>
-                    <p style="color:red">🔴 <strong>Total de colisiones:</strong> {total_colisiones}</p>
-                    <p style="color:green">🟢 <strong>Sin colisión:</strong> {total_Sin_coliciones}</p>
-                </div>
-                """,unsafe_allow_html=True)
-
-
+            # Usamos la función tipo_colision para obtener más detalles
+            if r["colision"]:
+                # Obtenemos las elipses correspondientes
+                elipse1 = next(e for e, rut in zip(elipses, ruts_limpios) if rut == r['rut1'])
+                elipse2 = next(e for e, rut in zip(elipses, ruts_limpios) if rut == r['rut2'])
+                
+                tipo = tipo_colision(elipse1, elipse2)
+                st.error(f"{tipo} : {mensaje}")
+                
+                # Mostrar análisis detallado en un expander
+                with st.expander(f"Ver detalles de colisión entre {r['rut1']} y {r['rut2']}"):
+                    analisis = analizar_colision_detallada(elipse1, elipse2)
+                    st.write(f"**Distancia entre centros:** {analisis['distancia_centros']}")
+                    st.write(f"**Suma de radios máximos:** {analisis['suma_radios_maximos']}")
+                    st.write(f"**Diferencia de radios:** {analisis['diferencia_radios']}")
+                    st.write(f"**Porcentaje de solapamiento:** {analisis.get('porcentaje_solapamiento', 0)}%")
+                    st.write(f"**Tipo de colisión:** {analisis['tipo']}")
+            else:
+                st.success(f"{mensaje}")
+        
+        st.markdown(
+            f""" 
+            <div style="font-size:16px">
+                <p><strong>Total de operaciones por detección de colisiones:</strong> {len(elipses) * (len(elipses) - 1) // 2}</p>
+                <p style="color:red">🔴 <strong>Total de colisiones:</strong> {total_colisiones}</p>
+                <p style="color:green">🟢 <strong>Sin colisión:</strong> {total_Sin_coliciones}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
 # Procesar y mostrar datos                 
-def Mostrar_datos_encapsulado_elipse(elipse,rut):
+def Mostrar_datos_encapsulado_elipse(elipse, rut):
     try:
         e_canonica = elipse.ecuacion_canonica()
         e_general = elipse.ecuacion_general()

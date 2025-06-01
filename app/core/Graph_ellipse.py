@@ -3,6 +3,7 @@ from .Math_ellipse import Elipse
 from .Items_ellipse import ElipseVisual
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import numpy as np
 import io
 import base64
 
@@ -100,99 +101,118 @@ def grafico_2d_simple(elipse: Elipse, escala=1.0):
 
 def grafico_2d_interactivo(elipses: list, ruts_limpios: list, escala=1.0):
     fig = go.Figure()
-
+    
+    # Asegurarse de que tenemos elipses y RUTs
+    if not elipses or not ruts_limpios or len(elipses) != len(ruts_limpios):
+        return fig
+    
     for idx, elipse in enumerate(elipses):
+        # Verificar que la elipse tiene los atributos necesarios
+        if not hasattr(elipse, 'calcular_puntos'):
+            continue
+            
         puntos = elipse.calcular_puntos(n=200)
-        x_vals = [x * escala for x, _ in puntos]
-        y_vals = [y * escala for _, y in puntos]
+        x_vals = [p[0] * escala for p in puntos]
+        y_vals = [p[1] * escala for p in puntos]
         color = colores[idx % len(colores)]
 
         fig.add_trace(go.Scatter(
             x=x_vals,
             y=y_vals,
             mode='lines',
-            name=f"Elipse {ruts_limpios[idx]}",
+            name=f"RUT {ruts_limpios[idx]}",
             line=dict(color=color, width=2.5),
             hoverinfo='name'
         ))
-
-        # Punto central (opcional)
+        
+        # Punto central
         fig.add_trace(go.Scatter(
             x=[elipse.h * escala],
             y=[elipse.k * escala],
             mode='markers+text',
-            text=[f"({elipse.h}, {elipse.k})"],
+            text=[f"({elipse.h:.1f}, {elipse.k:.1f})"],
             textposition="top right",
-            marker=dict(color=color, size=6),
+            marker=dict(color=color, size=8),
             showlegend=False
         ))
 
     fig.update_layout(
-        # title="Visualización 2D de trayectorias",
         plot_bgcolor='#121212',
         paper_bgcolor='#121212',
-        font=dict(color=tick_color[0], size=12),
-        xaxis=dict(
-            title="Eje X",
-            color=tick_color[0],
-            zeroline=True,
-            showgrid=True,
-            gridcolor="#2A2A2A",
-        ),
-        yaxis=dict(
-            title="Eje Y",
-            color=tick_color[0],
-            zeroline=True,
-            showgrid=True,
-            gridcolor="#2A2A2A",
-            scaleanchor="x",  # Relación 1:1
-            scaleratio=1
-        ),
-        legend=dict(
-            bgcolor='#121212',
-            bordercolor=tick_color[3],
-            borderwidth=1
-        ),title="Visualización 2D de trayectorias"
+        font=dict(color='#FFFFFF', size=12),
+        xaxis=dict(title="Eje X", gridcolor="#2A2A2A"),
+        yaxis=dict(title="Eje Y", gridcolor="#2A2A2A", scaleanchor="x", scaleratio=1),
+        legend=dict(bgcolor='#121212', bordercolor='#AAAAAA', borderwidth=1)
     )
-
+    
     return fig
 
 # GRAFICO 3D INTERACTIVO - MULTIPLE ELIPSE =>
 
+def generar_elipsoide(cx, cy, cz, rx, ry, rz, n=30):
+    u = np.linspace(0, 2 * np.pi, n)
+    v = np.linspace(0, np.pi, n)
+    x = rx * np.outer(np.cos(u), np.sin(v)) + cx
+    y = ry * np.outer(np.sin(u), np.sin(v)) + cy
+    z = rz * np.outer(np.ones_like(u), np.cos(v)) + cz
+    return x, y, z
+
+def detectar_colision(c1, r1, c2, r2):
+    distancia = np.linalg.norm(np.array(c1) - np.array(c2))
+    return distancia < (max(r1) + max(r2))
+
 def Grafico_3D_multiple(elipses: list, ruts_limpios: list, escala=0.5):
     fig = go.Figure()
 
-    colores = [
-        "#4DD0E1", "#FFD54F", "#81C784",
-        "#BA68C8", "#FF8A65", "#64B5F6", "#F06292"
-    ]
+    # Usar la variable global 'colores' declarada al inicio del archivo
+    # colores = [
+    #     "#4DD0E1", "#FFD54F", "#81C784",
+    #     "#BA68C8", "#FF8A65", "#64B5F6", "#F06292"
+    # ]
 
+    centros = []
+    radios = []
+
+    # Construir y guardar datos para colisión
+    for elipse in elipses:
+        centros.append((elipse.h * escala, elipse.k * escala, 0))  # centro en z=0
+        radios.append((elipse.a * escala, elipse.b * escala, elipse.b * escala))  # usar 'b' para Z como aproximación
+
+    # Recorrer elipses para graficar y detectar colisión
     for idx, elipse in enumerate(elipses):
-        puntos = elipse.calcular_puntos(n=100)
-        x = [p[0] * escala for p in puntos]
-        y = [p[1] * escala for p in puntos]
-        z = [idx] * len(puntos)
+        cx, cy, cz = centros[idx]
+        rx, ry, rz = radios[idx]
 
-        fig.add_trace(go.Scatter3d(
-            x=x,
-            y=y,
-            z=z,
-            mode='lines',
-            line=dict(color=colores[idx % len(colores)], width=4),
+        colisiona = False
+        for jdx in range(idx):
+            if detectar_colision(centros[idx], radios[idx], centros[jdx], radios[jdx]):
+                colisiona = True
+                break
+
+        color = '#FF3D00' if colisiona else colores[idx % len(colores)]
+
+        x, y, z = generar_elipsoide(cx, cy, cz + idx * 2, rx, ry, rz)
+
+        fig.add_trace(go.Surface(
+            x=x, y=y, z=z,
+            opacity=0.5,
+            showscale=False,
+            colorscale=[[0, color], [1, color]],
             name=f"RUT {ruts_limpios[idx]}"
         ))
 
     fig.update_layout(
-        margin=dict(l=0, r=0, b=0, t=40),
+        title="Visualización 3D de zonas de drones y colisiones",
+        scene=dict(
+            xaxis_title='X', yaxis_title='Y', zaxis_title='Z',
+            xaxis=dict(backgroundcolor='#121212', gridcolor='#424242'),
+            yaxis=dict(backgroundcolor='#121212', gridcolor='#424242'),
+            zaxis=dict(backgroundcolor='#121212', gridcolor='#424242'),
+        ),
         paper_bgcolor='#121212',
         plot_bgcolor='#121212',
         font_color='white',
-        scene=dict(
-            xaxis=dict(title='X', backgroundcolor='#121212', gridcolor='#424242'),
-            yaxis=dict(title='Y', backgroundcolor='#121212', gridcolor='#424242'),
-            zaxis=dict(title='Z', backgroundcolor='#121212', gridcolor='#424242')
-        ),
-        title="Visualización 3D de trayectorias"
+        margin=dict(l=0, r=0, b=0, t=40)
     )
 
     return fig
