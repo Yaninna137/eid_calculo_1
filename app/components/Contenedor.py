@@ -42,6 +42,10 @@ def mostrar_tarjeta_izquierda():
 
 
 def mostrar_entrada_ruts():
+    # Inicializar session_state si no existe
+    if "ruts_input" not in st.session_state:
+        st.session_state.ruts_input = ""
+    
     # Entrada y botones a la derecha
     st.markdown("""
     <style>
@@ -60,10 +64,14 @@ def mostrar_entrada_ruts():
 
     ruts_input = st.text_area(
         "",
-        value=st.session_state.get("ruts_input", ""),
+        value=st.session_state.ruts_input,
         height=120,
-        placeholder="Ej: 12.345.678-5\n9.876.543-2"
+        placeholder="Ej: 12.345.678-5\n9.876.543-2",
+        key="textarea_ruts"
     )
+
+    # Actualizar session_state con el valor actual
+    st.session_state.ruts_input = ruts_input
 
     return ruts_input
 
@@ -71,12 +79,12 @@ def mostrar_entrada_ruts():
 def mostrar_botones():
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 2])
     with col_btn2:
-        if st.button("RUT aleatorio"):
+        if st.button("RUT aleatorio", key="btn_rut_aleatorio"):
             ruts_generados = generar_ruts_validos(3)
             st.session_state.ruts_input = "\n".join(ruts_generados)
             st.rerun()
     with col_btn3:
-        return st.button("Simular elipse")
+        return st.button("Simular elipse", key="btn_simular_elipse")
 
 
 def mostrar_columna_acciones(ruts_limpios):
@@ -102,3 +110,5 @@ def ejecutar_interfaz():
 
     if mostrar_botones() and bool(ruts_validos):
         st.success(f"Simulando elipses para: {', '.join(ruts_validos)}")
+        # Aquí deberías llamar a la función que procesa las elipses
+        # y guardar los resultados en session_state

@@ -1,8 +1,10 @@
 # Archivo: requirements.txt actuales 
 streamlit
-numpy (X)
+numpy
 matplotlib
 plotly
-scipy (X)
+scipy
 pydantic
 pytest
+shapely
+casadi
