@@ -1,5 +1,7 @@
 import streamlit as st
-from .rut_parser import generar_ruts_validos, limpiar_ruts
+from .rut_parser import generar_ruts_validos, limpiar_ruts, es_rut_valido
+
+
 def mostrar_tarjeta_izquierda():
     # Tarjeta izquierda con borde animado de colores cálidos
     st.markdown("""
@@ -37,16 +39,15 @@ def mostrar_tarjeta_izquierda():
         }
         </style>
         """, unsafe_allow_html=True)
+
+
 def mostrar_entrada_ruts():
     # Entrada y botones a la derecha
-    # Estilos personalizados para el textarea y el label
     st.markdown("""
     <style>
-    /* Oculta el label del text_area */
     .css-1kyxreq.effi0qh3 {
         display: none;
     }
-    /* Estilo para el campo de texto */
     textarea {
         background-color: #1b1f2a !important;
         color: white !important;
@@ -66,6 +67,7 @@ def mostrar_entrada_ruts():
 
     return ruts_input
 
+
 def mostrar_botones():
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 2])
     with col_btn2:
@@ -76,5 +78,27 @@ def mostrar_botones():
     with col_btn3:
         return st.button("Simular elipse")
 
-def mostrar_columna_acciones(ruts_limpios):  
+
+def mostrar_columna_acciones(ruts_limpios):
     return mostrar_botones() and bool(ruts_limpios)
+
+
+# 💡 Agrega esta función para validar los RUTs ingresados
+def obtener_ruts_validos_y_invalidos(texto_input):
+    ruts_limpios = limpiar_ruts(texto_input)
+    ruts_validos = [rut for rut in ruts_limpios if es_rut_valido(rut)]
+    ruts_invalidos = [rut for rut in ruts_limpios if not es_rut_valido(rut)]
+    return ruts_validos, ruts_invalidos
+
+
+# ✅ Lógica de integración completa
+def ejecutar_interfaz():
+    mostrar_tarjeta_izquierda()
+    texto_ruts = mostrar_entrada_ruts()
+    ruts_validos, ruts_invalidos = obtener_ruts_validos_y_invalidos(texto_ruts)
+
+    if ruts_invalidos:
+        st.warning(f"RUTs inválidos detectados: {', '.join(ruts_invalidos)}")
+
+    if mostrar_botones() and bool(ruts_validos):
+        st.success(f"Simulando elipses para: {', '.join(ruts_validos)}")

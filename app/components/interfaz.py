@@ -1,17 +1,21 @@
-'''
-Código de interfaz 
-'''
 # components/interfaz.py
-
 import streamlit as st
 
 from components.estilo import estilo_add
-from components.rut_parser import limpiar_ruts, es_rut_valido, generar_ruts_validos
+from components.rut_parser import limpiar_ruts
 from components.Contenedor import mostrar_tarjeta_izquierda, mostrar_entrada_ruts, mostrar_columna_acciones
-from components.simulador import procesar_ruts, analizar_colisiones
+from components.simulador import procesar_ruts, analizar_colisiones_detallado
 from core.Graph_ellipse import Grafico_3D_multiple, grafico_2d_simple, grafico_2d_interactivo
 from core.Items_ellipse import ElipseVisual
 from core.collision.CollisionAnalysis import tipo_colision, analizar_colision_detallada # Importamos las nuevas funciones
+
+def encabezado_html(titulo: str, descripcion: str):
+    return f"""
+    <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+        <h2 style='margin-bottom: 5px; color: white; text-align: center;'>{titulo}</h2>
+        <p style='font-size: 18px; color: gray; text-align: center;'>{descripcion}</p>
+    </div>
+    """
 
 def mostrar_interfaz():
     st.set_page_config(page_title="Simulador de Trayectorias Dron - RUT", layout="wide")
@@ -54,15 +58,8 @@ def mostrar_datos(elipses, ruts_limpios):
     tab1, tab2 = st.tabs(["Datos de elipses", "Gráficos y Colisiones"])
     
     with tab1:
-        st.markdown(
-            """
-            <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-            <h2 style='margin-bottom: 5px; color: white; text-align: center;'>Datos de las elipses</h2>
-            <p style='font-size: 18px; color: gray; text-align: center;'>
-                En esta sección encontrarás los detalles técnicos de cada elipse generada, incluyendo vértices, focos y parámetros calculados a partir del RUT del dron.
-            </p>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown(encabezado_html("Datos de las elipses", "En esta sección encontrarás los detalles técnicos de cada elipse generada, incluyendo vértices, focos y parámetros calculados a partir del RUT del dron."), 
+                    unsafe_allow_html=True)
         
         for idx, elipse in enumerate(elipses):
             col1, col2 = st.columns([2, 3])
@@ -83,15 +80,7 @@ def mostrar_datos(elipses, ruts_limpios):
                     """, unsafe_allow_html=True) 
     
     with tab2:
-        st.markdown(
-        """
-        <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-        <h2 style='margin-bottom: 5px; color: white; text-align: center;'>Comparación visual y detección de colisiones</h2>
-        <p style='font-size: 18px; color: gray; text-align: center;'>
-            Sección visual de grafica 2D, 3D, colision(si existe)
-        </p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(encabezado_html("Comparación visual y detección de colisiones", "Sección visual de grafica 2D, 3D, colision(si existe)"), unsafe_allow_html=True)
 
         col1, col2 = st.columns([2, 2])
         with col1:
@@ -105,7 +94,7 @@ def mostrar_datos(elipses, ruts_limpios):
         st.markdown("---")
         st.markdown("""<h4 style="color: #ff6f61" >Resultados de colisión</h4>""", unsafe_allow_html=True)
 
-        resultados, total_colisiones, total_Sin_coliciones = analizar_colisiones(elipses, ruts_limpios)
+        resultados, estadisticas = analizar_colisiones_detallado(elipses, ruts_limpios)
 
         # Mostrar resultados detallados de colisiones
         for r in resultados:
@@ -132,12 +121,17 @@ def mostrar_datos(elipses, ruts_limpios):
             else:
                 st.success(f"{mensaje}")
         
+        total_colisiones = (estadisticas['colision_leve'] + estadisticas['colision_moderada'] + estadisticas['colision_severa'] + estadisticas['colision_inclusion'])
+
+        total_sin_colisiones = estadisticas['sin_colision']
+
+        # Usar el mismo formato que tenías
         st.markdown(
             f""" 
             <div style="font-size:16px">
-                <p><strong>Total de operaciones por detección de colisiones:</strong> {len(elipses) * (len(elipses) - 1) // 2}</p>
+                <p><strong>Total de operaciones por detección de colisiones:</strong> {estadisticas['total_comparaciones']}</p>
                 <p style="color:red">🔴 <strong>Total de colisiones:</strong> {total_colisiones}</p>
-                <p style="color:green">🟢 <strong>Sin colisión:</strong> {total_Sin_coliciones}</p>
+                <p style="color:green">🟢 <strong>Sin colisión:</strong> {total_sin_colisiones}</p>
             </div>
             """, unsafe_allow_html=True)
         

@@ -9,21 +9,13 @@ Este paquete proporciona funcionalidades para:
 
 # Importa las funciones principales para exponerlas en el espacio de nombres del paquete
 from .CollisionDetection import (
-    hay_colision,
     hay_colision_mejorada,
-    punto_en_elipse,
-    punto_en_elipse_con_tolerancia
 )
 
-from .DistanceCalculations import (
-    distancia_centros,
-    distancia_punto_centro,
-    punto_mas_cercano_en_elipse
-)
 
 from .CollisionAnalysis import (
     tipo_colision,
-    analizar_colision_detallada
+    analizar_colision_detallada,
 )
 
 # Define qué se exporta cuando se usa 'from core.collision import *'

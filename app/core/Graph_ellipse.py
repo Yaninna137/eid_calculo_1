@@ -24,7 +24,7 @@ def formatear_numero(n):
 # GRAFICO 2D - INDIVIDUAL ELIPSE =>
 
 def grafico_2d_simple(elipse: Elipse, escala=1.0):
-    puntos = elipse.calcular_puntos(n=200)
+    puntos = elipse.calcular_puntos(n=50)
     
     if isinstance(elipse, ElipseVisual): # Asegurando de usar puntos con etiquetas desde ElipseVisual
         puntos_etiquetados = elipse.puntos_con_etiquetas()
@@ -111,7 +111,7 @@ def grafico_2d_interactivo(elipses: list, ruts_limpios: list, escala=1.0):
         if not hasattr(elipse, 'calcular_puntos'):
             continue
             
-        puntos = elipse.calcular_puntos(n=200)
+        puntos = elipse.calcular_puntos(n=100)
         x_vals = [p[0] * escala for p in puntos]
         y_vals = [p[1] * escala for p in puntos]
         color = colores[idx % len(colores)]
@@ -163,12 +163,6 @@ def detectar_colision(c1, r1, c2, r2):
 
 def Grafico_3D_multiple(elipses: list, ruts_limpios: list, escala=0.5):
     fig = go.Figure()
-
-    # Usar la variable global 'colores' declarada al inicio del archivo
-    # colores = [
-    #     "#4DD0E1", "#FFD54F", "#81C784",
-    #     "#BA68C8", "#FF8A65", "#64B5F6", "#F06292"
-    # ]
 
     centros = []
     radios = []

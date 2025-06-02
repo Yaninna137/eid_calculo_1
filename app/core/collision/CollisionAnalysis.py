@@ -1,47 +1,149 @@
-from core.Math_ellipse import Elipse
-from .CollisionDetection import hay_colision_mejorada
-from .DistanceCalculations import distancia_centros
+# core/collision/CollisionAnalysis.py
+"""
+Módulo para el análisis detallado de colisiones entre elipses
+Utiliza las funciones mejoradas de CollisionDetection
+"""
+from math import pi
+from .CollisionDetection import (
+    distancia_centros, 
+    hay_colision_mejorada, 
+    hay_colision_precisa,
+    distancia_minima_entre_elipses,
+    punto_dentro_de_elipse
+)
 
-def tipo_colision(e1: Elipse, e2: Elipse, tolerancia: float = 0.1, dimensiones: int = 2) -> str:
+def tipo_colision(elipse1, elipse2):
     """
-    Retorna un mensaje descriptivo sobre el tipo de colisión detectada.
+    Determina el tipo de colisión entre dos elipses con mayor precisión
     """
-    if hay_colision_mejorada(e1, e2, tolerancia):
-        distancia = distancia_centros(e1, e2)
-        radio1_max = max(e1.a, e1.b)
-        radio2_max = max(e2.a, e2.b)
-        
-        if distancia < abs(radio1_max - radio2_max):
-            return "🔴 Colisión total - Una elipse está dentro de la otra"
-        elif distancia < (radio1_max + radio2_max) * 0.5:
-            return "🟡 Colisión parcial significativa"
-        else:
-            return "🟠 Colisión parcial menor"
+    if not hay_colision_mejorada(elipse1, elipse2):
+        return "Sin colisión"
+    
+    # Usar la función mejorada de distancia entre centros
+    distancia_centros_val = distancia_centros(elipse1, elipse2)
+    
+    # Radios efectivos
+    radio_efectivo_1 = (elipse1.a + elipse1.b) / 2
+    radio_efectivo_2 = (elipse2.a + elipse2.b) / 2
+    
+    # Verificar si hay inclusión completa
+    if punto_dentro_de_elipse(elipse1.h, elipse1.k, elipse2) or \
+       punto_dentro_de_elipse(elipse2.h, elipse2.k, elipse1):
+        return "🔴 Colisión por inclusión"
+    
+    # Clasificar tipo de colisión basado en distancia
+    if distancia_centros_val < abs(radio_efectivo_1 - radio_efectivo_2):
+        return "🔴 Colisión por inclusión"
+    elif distancia_centros_val < (radio_efectivo_1 + radio_efectivo_2) * 0.3:
+        return "🟠 Colisión severa"
+    elif distancia_centros_val < (radio_efectivo_1 + radio_efectivo_2) * 0.7:
+        return "🟡 Colisión moderada"
     else:
-        return "✅ Trayectorias seguras - Sin colisión"
+        return "🟢 Colisión leve"
 
-def analizar_colision_detallada(e1: Elipse, e2: Elipse, tolerancia: float = 0.1) -> dict:
+def analizar_colision_detallada(elipse1, elipse2):
     """
-    Proporciona un análisis detallado de la colisión entre dos elipses.
+    Proporciona un análisis detallado de la colisión entre dos elipses
+    Utiliza las funciones mejoradas de detección
     """
-    distancia = distancia_centros(e1, e2)
-    radio1_max = max(e1.a, e1.b)
-    radio2_max = max(e2.a, e2.b)
+    # Usar la función mejorada de distancia entre centros
+    distancia_centros_val = distancia_centros(elipse1, elipse2)
     
-    colision = hay_colision_mejorada(e1, e2, tolerancia)
+    # Radios máximos y mínimos
+    radio_max_1 = elipse1.a
+    radio_min_1 = elipse1.b
+    radio_max_2 = elipse2.a
+    radio_min_2 = elipse2.b
     
-    resultado = {
-        "hay_colision": colision,
-        "distancia_centros": round(distancia, 4),
-        "suma_radios_maximos": radio1_max + radio2_max,
-        "diferencia_radios": abs(radio1_max - radio2_max),
-        "porcentaje_solapamiento": 0,
-        "tipo": tipo_colision(e1, e2, tolerancia)
+    # Suma de radios
+    suma_radios_maximos = radio_max_1 + radio_max_2
+    suma_radios_minimos = radio_min_1 + radio_min_2
+    diferencia_radios = abs(radio_max_1 - radio_max_2)
+    
+    # Porcentaje de solapamiento aproximado
+    if distancia_centros_val < suma_radios_maximos:
+        solapamiento = ((suma_radios_maximos - distancia_centros_val) / suma_radios_maximos) * 100
+    else:
+        solapamiento = 0
+    
+    # Determinar tipo de colisión
+    tipo = tipo_colision(elipse1, elipse2)
+    
+    # Análisis de riesgo mejorado
+    if distancia_centros_val == 0:
+        riesgo = "CRÍTICO - Centros coincidentes"
+    elif punto_dentro_de_elipse(elipse1.h, elipse1.k, elipse2) or \
+         punto_dentro_de_elipse(elipse2.h, elipse2.k, elipse1):
+        riesgo = "CRÍTICO - Una elipse contiene el centro de la otra"
+    elif distancia_centros_val < diferencia_radios:
+        riesgo = "ALTO - Posible inclusión de elipses"
+    elif solapamiento > 50:
+        riesgo = "MEDIO-ALTO - Solapamiento significativo"
+    elif solapamiento > 20:
+        riesgo = "MEDIO - Solapamiento moderado"
+    elif solapamiento > 0:
+        riesgo = "BAJO - Solapamiento mínimo"
+    else:
+        riesgo = "NULO - Sin solapamiento"
+    
+    # Calcular distancia mínima entre perímetros
+    distancia_minima = 0
+    if not hay_colision_mejorada(elipse1, elipse2):
+        distancia_minima = distancia_minima_entre_elipses(elipse1, elipse2)
+    
+    return {
+        'distancia_centros': round(distancia_centros_val, 2),
+        'suma_radios_maximos': round(suma_radios_maximos, 2),
+        'suma_radios_minimos': round(suma_radios_minimos, 2),
+        'diferencia_radios': round(diferencia_radios, 2),
+        'porcentaje_solapamiento': round(solapamiento, 1),
+        'distancia_minima_perimetros': round(distancia_minima, 2),
+        'tipo': tipo,
+        'nivel_riesgo': riesgo,
+        'area_elipse1': round(pi * elipse1.a * elipse1.b, 2),
+        'area_elipse2': round(pi * elipse2.a * elipse2.b, 2),
+        'orientacion_1': elipse1.orientacion,
+        'orientacion_2': elipse2.orientacion,
+        'colision_precisa': hay_colision_precisa(elipse1, elipse2) if hay_colision_mejorada(elipse1, elipse2) else False
     }
+
+
+#funcion pendiente por implementar
+def analizar_multiples_colisiones(elipses, identificadores=None):
+    """
+    NUEVA FUNCIÓN: Analiza colisiones entre múltiples elipses
+    """
+    if identificadores is None:
+        identificadores = [f"Elipse_{i+1}" for i in range(len(elipses))]
     
-    if colision:
-        if distancia < (radio1_max + radio2_max):
-            solapamiento = (radio1_max + radio2_max - distancia) / (radio1_max + radio2_max)
-            resultado["porcentaje_solapamiento"] = round(solapamiento * 100, 2)
+    resultados = []
+    matriz_colisiones = {}
     
-    return resultado
+    for i in range(len(elipses)):
+        for j in range(i + 1, len(elipses)):
+            analisis = analizar_colision_detallada(elipses[i], elipses[j])
+            
+            resultado = {
+                'id1': identificadores[i],
+                'id2': identificadores[j],
+                'tiene_colision': hay_colision_mejorada(elipses[i], elipses[j]),
+                'analisis': analisis
+            }
+            
+            resultados.append(resultado)
+            matriz_colisiones[f"{identificadores[i]}-{identificadores[j]}"] = resultado['tiene_colision']
+    
+    # Estadísticas generales
+    total_comparaciones = len(resultados)
+    total_colisiones = sum(1 for r in resultados if r['tiene_colision'])
+    
+    return {
+        'resultados_detallados': resultados,
+        'matriz_colisiones': matriz_colisiones,
+        'estadisticas': {
+            'total_comparaciones': total_comparaciones,
+            'total_colisiones': total_colisiones,
+            'total_sin_colisiones': total_comparaciones - total_colisiones,
+            'porcentaje_colisiones': round((total_colisiones / total_comparaciones) * 100, 1) if total_comparaciones > 0 else 0
+        }
+    }

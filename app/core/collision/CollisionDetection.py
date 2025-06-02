@@ -1,146 +1,134 @@
-from .DistanceCalculations import distancia_centros, distancia_punto_centro
-from ..Math_ellipse import Elipse
-from math import cos, sin, pi
-import numpy as np
+# core/collision/CollisionDetection.py
+"""
+Módulo para la detección de colisiones entre elipses
+Integra funcionalidades de cálculo de distancias
+"""
+from math import sqrt, cos, sin, pi
+from core.Math_ellipse import Elipse
 
-def punto_en_elipse(x: float, y: float, elipse: Elipse) -> bool:
+def distancia_centros(e1: Elipse, e2: Elipse, dimensiones: int = 2) -> float:
     """
-    Verifica si un punto (x, y) está dentro o sobre una elipse usando su ecuación canónica.
-    Retorna True si el punto está dentro o en el borde de la elipse.
+    Calcula la distancia euclidiana entre los centros de dos elipses.
     """
-    dx = x - elipse.h
-    dy = y - elipse.k
+    dx = e1.h - e2.h
+    dy = e1.k - e2.k
     
-    if elipse.orientacion == "horizontal":
-        valor = (dx**2) / (elipse.a**2) + (dy**2) / (elipse.b**2)
-    else:
-        valor = (dx**2) / (elipse.b**2) + (dy**2) / (elipse.a**2)
+    if dimensiones == 3:
+        dz = getattr(e1, 'z', 0) - getattr(e2, 'z', 0)
+        return sqrt(dx**2 + dy**2 + dz**2)
     
-    return valor <= 1.0
+    return sqrt(dx**2 + dy**2)
 
-def punto_en_elipse_con_tolerancia(x: float, y: float, elipse: Elipse, tolerancia: float) -> bool:
+# ==================== FUNCIONES DE DETECCIÓN DE COLISIÓN ====================
+def hay_colision_mejorada(elipse1, elipse2):
     """
-    Verifica si un punto está dentro de una elipse expandida por la tolerancia.
+    Detección mejorada de colisión que considera ambos semiejes
+    Mantiene la funcionalidad original para compatibilidad
     """
-    dx = x - elipse.h
-    dy = y - elipse.k
+    # Usar la nueva función de distancia_centros
+    distancia_centros_val = distancia_centros(elipse1, elipse2)
     
-    # Expandir la elipse por la tolerancia
-    a_expandido = elipse.a + tolerancia
-    b_expandido = elipse.b + tolerancia
+    # Aproximación conservadora: usar el promedio de los semiejes
+    radio_efectivo_1 = (elipse1.a + elipse1.b) / 2
+    radio_efectivo_2 = (elipse2.a + elipse2.b) / 2
     
-    if elipse.orientacion == "horizontal":
-        valor = (dx**2) / (a_expandido**2) + (dy**2) / (b_expandido**2)
-    else:
-        valor = (dx**2) / (b_expandido**2) + (dy**2) / (a_expandido**2)
+    suma_radios_efectivos = radio_efectivo_1 + radio_efectivo_2
     
-    return valor <= 1.0
+    # Hay colisión si la distancia es menor que la suma de radios efectivos
+    return distancia_centros_val < suma_radios_efectivos
 
-def hay_colision_mejorada(e1: Elipse, e2: Elipse, tolerancia: float = 0.1, precision: int = 500) -> bool:
+def hay_colision_precisa(elipse1, elipse2, precision=100):
     """
-    Versión mejorada de detección de colisiones entre elipses.
-    
-    Algoritmo multi-etapa:
-    1. Filtro rápido por distancia de centros
-    2. Verificación de contención mutua
-    3. Verificación de intersección de perímetros con alta precisión
-    4. Verificación bidireccional punto-a-elipse
+    NUEVA FUNCIÓN: Detección de colisión más precisa
+    Verifica múltiples puntos en el perímetro de una elipse contra la otra
     """
-    # Etapa 1: Filtro rápido por distancia
-    distancia = distancia_centros(e1, e2)
-    radio1_max = max(e1.a, e1.b)
-    radio2_max = max(e2.a, e2.b)
-    radio1_min = min(e1.a, e1.b)
-    radio2_min = min(e2.a, e2.b)
-    
-    if distancia > (radio1_max + radio2_max + tolerancia):
+    if not hay_colision_mejorada(elipse1, elipse2):
+        # Si la detección rápida dice que no hay colisión, confiamos en ella
         return False
     
-    # Etapa 2: Verificar si una elipse está completamente dentro de la otra
-    if distancia + radio1_max <= radio2_min or distancia + radio2_max <= radio1_min:
-        return True
-    
-    # Etapa 3: Verificación de intersección con alta precisión
-    puntos1 = generar_puntos_precision(e1, precision)
-    puntos2 = generar_puntos_precision(e2, precision)
-    
-    for x, y in puntos1:
-        if punto_en_elipse_con_tolerancia(x, y, e2, tolerancia):
+    # Verificación más precisa: revisar puntos en el perímetro
+    for i in range(0, precision):
+        angulo = 2 * pi * i / precision
+        
+        # Punto en elipse1
+        if elipse1.orientacion == "horizontal":
+            x1 = elipse1.h + elipse1.a * cos(angulo)
+            y1 = elipse1.k + elipse1.b * sin(angulo)
+        else:
+            x1 = elipse1.h + elipse1.b * cos(angulo)
+            y1 = elipse1.k + elipse1.a * sin(angulo)
+        
+        # Verificar si este punto está dentro de elipse2
+        if punto_dentro_de_elipse(x1, y1, elipse2):
             return True
-    
-    for x, y in puntos2:
-        if punto_en_elipse_con_tolerancia(x, y, e1, tolerancia):
-            return True
-    
-    # Etapa 4: Verificación adicional de puntos críticos
-    puntos_criticos1 = obtener_puntos_extremos(e1)
-    puntos_criticos2 = obtener_puntos_extremos(e2)
-    
-    for x, y in puntos_criticos1:
-        if punto_en_elipse_con_tolerancia(x, y, e2, tolerancia):
-            return True
-    
-    for x, y in puntos_criticos2:
-        if punto_en_elipse_con_tolerancia(x, y, e1, tolerancia):
+        
+        # Punto en elipse2
+        if elipse2.orientacion == "horizontal":
+            x2 = elipse2.h + elipse2.a * cos(angulo)
+            y2 = elipse2.k + elipse2.b * sin(angulo)
+        else:
+            x2 = elipse2.h + elipse2.b * cos(angulo)
+            y2 = elipse2.k + elipse2.a * sin(angulo)
+        
+        # Verificar si este punto está dentro de elipse1
+        if punto_dentro_de_elipse(x2, y2, elipse1):
             return True
     
     return False
 
-def generar_puntos_precision(elipse: Elipse, n: int) -> list:
+def punto_dentro_de_elipse(x, y, elipse):
     """
-    Genera puntos sobre el perímetro de la elipse con distribución uniforme.
+    NUEVA FUNCIÓN: Verifica si un punto está dentro de una elipse
     """
-    puntos = []
+    # Trasladar el punto al sistema de coordenadas con centro en el origen
+    dx = x - elipse.h
+    dy = y - elipse.k
     
-    for i in range(n):
-        angulo = 2 * pi * i / n
-        
-        if elipse.orientacion == "horizontal":
-            x = elipse.h + elipse.a * cos(angulo)
-            y = elipse.k + elipse.b * sin(angulo)
-        else:
-            x = elipse.h + elipse.b * cos(angulo)
-            y = elipse.k + elipse.a * sin(angulo)
-        
-        puntos.append((x, y))
-    
-    return puntos
-
-def obtener_puntos_extremos(elipse: Elipse) -> list:
-    """
-    Obtiene los puntos extremos de la elipse (vértices).
-    """
-    puntos = []
-    
+    # Aplicar la ecuación de la elipse
     if elipse.orientacion == "horizontal":
-        puntos.extend([
-            (elipse.h + elipse.a, elipse.k),
-            (elipse.h - elipse.a, elipse.k),
-            (elipse.h, elipse.k + elipse.b),
-            (elipse.h, elipse.k - elipse.b)
-        ])
+        valor = (dx**2)/(elipse.a**2) + (dy**2)/(elipse.b**2)
     else:
-        puntos.extend([
-            (elipse.h, elipse.k + elipse.a),
-            (elipse.h, elipse.k - elipse.a),
-            (elipse.h + elipse.b, elipse.k),
-            (elipse.h - elipse.b, elipse.k)
-        ])
+        valor = (dx**2)/(elipse.b**2) + (dy**2)/(elipse.a**2)
     
-    return puntos
+    return valor <= 1.0
 
-def hay_colision(e1: Elipse, e2: Elipse, tolerancia: float = 0.1, dimensiones: int = 2) -> bool:
+def distancia_minima_entre_elipses(elipse1, elipse2, precision=360):
     """
-    Función principal de detección de colisiones (mantiene compatibilidad).
-    Utiliza el algoritmo mejorado por defecto.
+    NUEVA FUNCIÓN: Calcula la distancia mínima entre los perímetros de dos elipses
     """
-    return hay_colision_mejorada(e1, e2, tolerancia, precision=1000)
-
-def hay_colision_3d(elipsoide1, elipsoide2):
-    """Verifica colisión entre dos elipsoides (simplificado)."""
-    distancia_centros = np.sqrt(
-        (elipsoide1.h - elipsoide2.h)**2 +
-        (elipsoide1.k - elipsoide2.k)**2 +
-        (elipsoide1.l - elipsoide2.l)**2
-    )
-    return distancia_centros < (elipsoide1.a + elipsoide2.a)  # Radio mayor como aproximación
+    if hay_colision_mejorada(elipse1, elipse2):
+        return 0.0  # Si hay colisión, la distancia mínima es 0
+    
+    distancia_minima = float('inf')
+    
+    # Generar puntos en el perímetro de la primera elipse
+    for i in range(precision):
+        angulo = 2 * pi * i / precision
+        
+        # Punto en elipse1
+        if elipse1.orientacion == "horizontal":
+            x1 = elipse1.h + elipse1.a * cos(angulo)
+            y1 = elipse1.k + elipse1.b * sin(angulo)
+        else:
+            x1 = elipse1.h + elipse1.b * cos(angulo)
+            y1 = elipse1.k + elipse1.a * sin(angulo)
+        
+        # Encontrar el punto más cercano en elipse2
+        for j in range(precision):
+            angulo2 = 2 * pi * j / precision
+            
+            # Punto en elipse2
+            if elipse2.orientacion == "horizontal":
+                x2 = elipse2.h + elipse2.a * cos(angulo2)
+                y2 = elipse2.k + elipse2.b * sin(angulo2)
+            else:
+                x2 = elipse2.h + elipse2.b * cos(angulo2)
+                y2 = elipse2.k + elipse2.a * sin(angulo2)
+            
+            # Calcular distancia entre puntos
+            distancia = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+            
+            if distancia < distancia_minima:
+                distancia_minima = distancia
+    
+    return distancia_minima
