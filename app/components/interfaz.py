@@ -182,78 +182,76 @@ def mostrar_analisis_colisiones(elipses, ruts_limpios):
 
 def mostrar_resolucion_colisiones(elipses, ruts_limpios):
     """Nueva pestaña para resolución automática de colisiones"""
-    st.markdown(encabezado_html("Resolución automática de colisiones", "Sistema inteligente para separar drones en colisión y generar configuraciones seguras"), unsafe_allow_html=True)
-    
+    st.markdown(encabezado_html("Resolución automática de colisiones",
+            "Sistema inteligente para separar drones en colisión y generar configuraciones seguras"),unsafe_allow_html=True)
+
     # Controles para la resolución
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        max_iteraciones = st.slider("Máximo de iteraciones", 10, 100, 50, key="max_iter_resolucion")
-    with col2:
-        factor_ajuste = st.slider("Factor de ajuste", 0.05, 0.3, 0.1, step=0.05, key="factor_ajuste_resolucion")
-    with col3:
-        ejecutar_resolucion = st.button("🔧 Resolver Colisiones", type="primary", key="btn_resolver_colisiones")
-    
+    ejecutar_resolucion = st.button("🔧 Resolver Colisiones", type="primary", key="btn_resolver_colisiones")
+
     if ejecutar_resolucion:
         st.session_state.mostrar_resolucion = True
-        
+
         with st.spinner("Resolviendo colisiones..."):
             resultado_resolucion = resolver_colisiones_multiples(elipses, ruts_limpios)
+
             # Guardar resultado en session_state
             st.session_state.resultado_resolucion = resultado_resolucion
-            st.session_state.elipses_resueltas = resultado_resolucion['elipses_resueltas']
-    
+            st.session_state.elipses_resueltas = resultado_resolucion.get('elipses_resueltas', [])
+
     # Mostrar resultados si existen en session_state
-    if st.session_state.mostrar_resolucion and st.session_state.resultado_resolucion:
+    if st.session_state.get("mostrar_resolucion") and st.session_state.get("resultado_resolucion"):
         resultado_resolucion = st.session_state.resultado_resolucion
-        
-        if resultado_resolucion['colisiones_resueltas']:
+
+        if resultado_resolucion.get('colisiones_resueltas'):
             st.success("✅ ¡Todas las colisiones han sido resueltas!")
         else:
             st.warning("⚠️ Algunas colisiones aún persisten. Intenta aumentar las iteraciones.")
-        
+
         # Comparación visual: antes y después
         st.markdown("### Comparación: Antes vs Después")
         col_antes, col_despues = st.columns(2)
-        
+
         with col_antes:
             st.markdown("**Configuración Original**")
             fig_antes = grafico_2d_interactivo(elipses, ruts_limpios)
-            st.plotly_chart(fig_antes, use_container_width=True, key="antes_resolucion")
-        
+            st.plotly_chart(fig_antes, use_container_width=True)
+
         with col_despues:
             st.markdown("**Configuración Resuelta**")
-            fig_despues = grafico_2d_interactivo(resultado_resolucion['elipses_resueltas'], ruts_limpios)
-            st.plotly_chart(fig_despues, use_container_width=True, key="despues_resolucion")
-        
+            fig_despues = grafico_2d_interactivo(
+                resultado_resolucion.get('elipses_resueltas', []),
+                ruts_limpios
+            )
+            st.plotly_chart(fig_despues, use_container_width=True)
+
         # Estadísticas de resolución
-        if resultado_resolucion['estadisticas']:
-            stats = resultado_resolucion['estadisticas']
+        estadisticas = resultado_resolucion.get('estadisticas')
+        if estadisticas:
             st.markdown("### Estadísticas de Resolución")
-            
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("Desplazamiento Promedio", f"{stats['desplazamiento_promedio']:.2f}")
+                st.metric("Desplazamiento Promedio", f"{estadisticas['desplazamiento_promedio']:.2f}")
             with col2:
-                st.metric("Desplazamiento Máximo", f"{stats['desplazamiento_maximo']:.2f}")
+                st.metric("Desplazamiento Máximo", f"{estadisticas['desplazamiento_maximo']:.2f}")
             with col3:
-                st.metric("Desplazamiento Mínimo", f"{stats['desplazamiento_minimo']:.2f}")
+                st.metric("Desplazamiento Mínimo", f"{estadisticas['desplazamiento_minimo']:.2f}")
             with col4:
-                estado_resolucion = "✅ Completado" if stats['colisiones_resueltas'] else "❌ Pendiente"
+                estado_resolucion = "✅ Completado" if estadisticas['colisiones_resueltas'] else "❌ Pendiente"
                 st.metric("Estado", estado_resolucion)
-        
+
         # Análisis post-resolución
         st.markdown("### Verificación Post-Resolución")
-        resultados_post, estadisticas_post = analizar_colisiones_detallado(
-            resultado_resolucion['elipses_resueltas'], ruts_limpios
+        resultados_post, _ = analizar_colisiones_detallado(
+            resultado_resolucion.get('elipses_resueltas', []),
+            ruts_limpios
         )
-        
-        colisiones_restantes = sum([1 for r in resultados_post if r["colision"]])
-        
+
+        colisiones_restantes = sum(1 for r in resultados_post if r.get("colision"))
+
         if colisiones_restantes == 0:
             st.success(f"🎉 Configuración completamente segura: {len(elipses)} drones sin colisiones")
         else:
             st.error(f"⚠️ Aún quedan {colisiones_restantes} colisiones por resolver")
-
 
 def mostrar_trayectorias_seguras(elipses, ruts_limpios):
     """Nueva pestaña para trayectorias seguras"""

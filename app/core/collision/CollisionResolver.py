@@ -6,33 +6,47 @@ from core.Math_ellipse import Elipse
 from core.collision.CollisionDetection import hay_colision_mejorada, distancia_centros
 from math import sqrt
 
-def resolver_colisiones_automatico(elipses: list, max_iter=50, factor_ajuste=0.1):
+def resolver_colisiones_automatico(elipses: list, max_iter=100, factor_ajuste=0.3, margen_seguridad=1.1):
     """
-    Algoritmo principal para resolver colisiones entre múltiples elipses
-    usando separación gradual de centros
+    Algoritmo mejorado para resolver colisiones entre múltiples elipses
     """
     if len(elipses) < 2:
         return elipses
     
+    # Crear copias de las elipses para trabajar
     elipses_ajustadas = [Elipse(e.h, e.k, e.a, e.b, e.orientacion) for e in elipses]
     
     for iteracion in range(max_iter):
-        colisiones_resueltas = True
+        colisiones_detectadas = 0
         
+        # Primera pasada: detectar todas las colisiones
+        pares_en_colision = []
         for i in range(len(elipses_ajustadas)):
             for j in range(i + 1, len(elipses_ajustadas)):
                 if hay_colision_mejorada(elipses_ajustadas[i], elipses_ajustadas[j]):
-                    colisiones_resueltas = False
-                    separar_elipses(elipses_ajustadas[i], elipses_ajustadas[j], factor_ajuste)
+                    pares_en_colision.append((i, j))
+                    colisiones_detectadas += 1
         
-        if colisiones_resueltas:
+        # Si no hay colisiones, terminar
+        if colisiones_detectadas == 0:
             break
+        
+        # Segunda pasada: resolver colisiones con un factor de ajuste adaptativo
+        factor_actual = factor_ajuste * (1 + iteracion / max_iter)  # Aumenta gradualmente
+        
+        for i, j in pares_en_colision:
+            separar_elipses(
+                elipses_ajustadas[i], 
+                elipses_ajustadas[j], 
+                factor_actual,
+                margen_seguridad
+            )
     
     return elipses_ajustadas
 
-def separar_elipses(elipse1: Elipse, elipse2: Elipse, factor=0.1):
+def separar_elipses(elipse1: Elipse, elipse2: Elipse, factor=0.3, margen_seguridad=1.1):
     """
-    Separa dos elipses en colisión moviendo sus centros
+    Separa dos elipses en colisión con un margen de seguridad
     """
     # Calcular vector de separación
     dx = elipse2.h - elipse1.h
@@ -46,25 +60,21 @@ def separar_elipses(elipse1: Elipse, elipse2: Elipse, factor=0.1):
         dx, dy = 1.0, 0.0
         distancia_actual = 1.0
     
-    # Calcular distancia mínima necesaria
-    radio_efectivo_1 = (elipse1.a + elipse1.b) / 2
-    radio_efectivo_2 = (elipse2.a + elipse2.b) / 2
-    distancia_minima = (radio_efectivo_1 + radio_efectivo_2) * 1.1  # 10% de margen
-    
-    # Si ya están suficientemente separados, no hacer nada
-    if distancia_actual >= distancia_minima:
-        return
-    
-    # Calcular cuánto mover cada elipse
-    movimiento_necesario = (distancia_minima - distancia_actual) / 2
+    # Calcular distancia mínima necesaria con margen de seguridad
+    radio_efectivo_1 = max(elipse1.a, elipse1.b) * margen_seguridad
+    radio_efectivo_2 = max(elipse2.a, elipse2.b) * margen_seguridad
+    distancia_minima = radio_efectivo_1 + radio_efectivo_2
     
     # Normalizar el vector de dirección
     dx_norm = dx / distancia_actual
     dy_norm = dy / distancia_actual
     
-    # Aplicar movimiento con factor de ajuste
-    movimiento_x = dx_norm * movimiento_necesario * factor
-    movimiento_y = dy_norm * movimiento_necesario * factor
+    # Calcular movimiento necesario
+    movimiento_necesario = max(0, (distancia_minima - distancia_actual)) * factor
+    
+    # Aplicar movimiento
+    movimiento_x = dx_norm * movimiento_necesario
+    movimiento_y = dy_norm * movimiento_necesario
     
     # Mover las elipses en direcciones opuestas
     elipse1.h -= movimiento_x
