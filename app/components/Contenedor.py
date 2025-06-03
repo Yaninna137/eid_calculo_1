@@ -2,6 +2,13 @@ import streamlit as st
 from .rut_parser import generar_ruts_validos, limpiar_ruts, es_rut_valido
 
 
+def encabezado_html(titulo: str, descripcion: str):
+    return f"""
+    <div style='background-color: #1b1f2a; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+        <h2 style='margin-bottom: 5px; color: white; text-align: center;'>{titulo}</h2>
+        <p style='font-size: 18px; color: gray; text-align: center;'>{descripcion}</p>
+    </div>
+    """
 def mostrar_tarjeta_izquierda():
     # Tarjeta izquierda con borde animado de colores cálidos
     st.markdown("""
@@ -77,14 +84,20 @@ def mostrar_entrada_ruts():
 
 
 def mostrar_botones():
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 2])
+    col_btn1, col_btn2, col_btn3, col_btn4 = st.columns([1, 2, 2, 2])  # Añade una columna adicional
     with col_btn2:
         if st.button("RUT aleatorio", key="btn_rut_aleatorio"):
             ruts_generados = generar_ruts_validos(3)
             st.session_state.ruts_input = "\n".join(ruts_generados)
             st.rerun()
     with col_btn3:
-        return st.button("Simular elipse", key="btn_simular_elipse")
+        simular = st.button("Simular elipse", key="btn_simular_elipse")
+    with col_btn4:
+        if st.button("Limpiar datos", key="btn_limpiar"):
+            st.session_state.ruts_input = ""
+            st.session_state.clear()  # Opcional: limpia todo el session_state
+            st.rerun()
+    return simular
 
 
 def mostrar_columna_acciones(ruts_limpios):
