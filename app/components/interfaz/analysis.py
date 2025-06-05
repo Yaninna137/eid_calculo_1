@@ -36,12 +36,34 @@ def mostrar_analisis_colisiones(elipses, ruts_limpios):
             
             with st.expander(f"Ver detalles de colisión entre {r['rut1']} y {r['rut2']}"):
                 analisis = analizar_colision_detallada(elipse1, elipse2)
+                
+                # Información básica de colisión
                 st.write(f"**Distancia entre centros:** {analisis['distancia_centros']}")
                 st.write(f"**Suma de radios máximos:** {analisis['suma_radios_maximos']}")
                 st.write(f"**Diferencia de radios:** {analisis['diferencia_radios']}")
                 st.write(f"**Porcentaje de solapamiento:** {analisis.get('porcentaje_solapamiento', 0)}%")
                 st.write(f"**Tipo de colisión:** {analisis['tipo']}")
                 st.write(f"**Nivel de riesgo:** {analisis['nivel_riesgo']}")
+                
+                # NUEVA SECCIÓN: Puntos de intersección
+                st.markdown("---")
+                st.markdown("**📍 Puntos de Intersección:**")
+                
+                if analisis.get('numero_puntos_interseccion', 0) > 0:
+                    st.success(f"**Número de puntos encontrados:** {analisis['numero_puntos_interseccion']}")
+                    st.info(f"**Coordenadas:** {analisis['puntos_interseccion_str']}")
+                    
+                    # Mostrar puntos en formato de tabla si hay muchos
+                    if analisis['numero_puntos_interseccion'] > 4:
+                        st.markdown("**Puntos detallados:**")
+                        puntos_data = []
+                        for i, (x, y) in enumerate(analisis['puntos_interseccion'], 1):
+                            puntos_data.append({"Punto": f"P{i}", "X": x, "Y": y})
+                        st.table(puntos_data)
+                else:
+                    st.warning("No se encontraron puntos de intersección específicos")
+                    st.caption("Esto puede ocurrir en colisiones por inclusión completa o cuando las elipses apenas se tocan")
+                
         else:
             st.success(f"{mensaje}")
     

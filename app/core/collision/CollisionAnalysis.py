@@ -1,11 +1,12 @@
 # core/collision/CollisionAnalysis.py
 """
 Módulo para el análisis detallado de colisiones entre elipses
-Utiliza las funciones mejoradas de CollisionDetection
+Utiliza las funciones mejoradas de CollisionDetection e incluye puntos de intersección
 """
 from math import pi
 from .CollisionDetection import (distancia_centros, hay_colision_mejorada, hay_colision_precisa,
     distancia_minima_entre_elipses, punto_dentro_de_elipse)
+from .IntersectionPoints import encontrar_puntos_interseccion, formatear_puntos_interseccion
 
 def tipo_colision(elipse1, elipse2):
     """
@@ -39,7 +40,7 @@ def tipo_colision(elipse1, elipse2):
 def analizar_colision_detallada(elipse1, elipse2):
     """
     Proporciona un análisis detallado de la colisión entre dos elipses
-    Utiliza las funciones mejoradas de detección
+    Utiliza las funciones mejoradas de detección e incluye puntos de intersección
     """
     # Usar la función mejorada de distancia entre centros
     distancia_centros_val = distancia_centros(elipse1, elipse2)
@@ -63,6 +64,14 @@ def analizar_colision_detallada(elipse1, elipse2):
     
     # Determinar tipo de colisión
     tipo = tipo_colision(elipse1, elipse2)
+    
+    # NUEVA FUNCIONALIDAD: Encontrar puntos de intersección
+    puntos_interseccion = []
+    puntos_interseccion_str = "No hay intersección"
+    
+    if hay_colision_mejorada(elipse1, elipse2):
+        puntos_interseccion = encontrar_puntos_interseccion(elipse1, elipse2)
+        puntos_interseccion_str = formatear_puntos_interseccion(puntos_interseccion)
     
     # Análisis de riesgo mejorado
     if distancia_centros_val == 0:
@@ -99,14 +108,16 @@ def analizar_colision_detallada(elipse1, elipse2):
         'area_elipse2': round(pi * elipse2.a * elipse2.b, 2),
         'orientacion_1': elipse1.orientacion,
         'orientacion_2': elipse2.orientacion,
-        'colision_precisa': hay_colision_precisa(elipse1, elipse2) if hay_colision_mejorada(elipse1, elipse2) else False
+        'colision_precisa': hay_colision_precisa(elipse1, elipse2) if hay_colision_mejorada(elipse1, elipse2) else False,
+        # NUEVOS CAMPOS
+        'puntos_interseccion': puntos_interseccion,
+        'puntos_interseccion_str': puntos_interseccion_str,
+        'numero_puntos_interseccion': len(puntos_interseccion)
     }
 
-
-#funcion pendiente por implementar
 def analizar_multiples_colisiones(elipses, identificadores=None):
     """
-    NUEVA FUNCIÓN: Analiza colisiones entre múltiples elipses
+    FUNCIÓN ACTUALIZADA: Analiza colisiones entre múltiples elipses incluyendo puntos de intersección
     """
     if identificadores is None:
         identificadores = [f"Elipse_{i+1}" for i in range(len(elipses))]
