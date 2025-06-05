@@ -2,7 +2,7 @@ import streamlit as st
 from core.Items_ellipse import ElipseVisual
 from core.Graph_ellipse import grafico_2d_simple
 from components.Contenedor import encabezado_html
-from .analysis import mostrar_analisis_colisiones, mostrar_resolucion_colisiones, mostrar_trayectorias_seguras
+from .analysis import mostrar_analisis_colisiones, mostrar_resolucion_colisiones
 
 def Mostrar_datos_encapsulado_elipse(elipse, rut):
     try:
@@ -29,7 +29,7 @@ def Mostrar_datos_encapsulado_elipse(elipse, rut):
         st.markdown(f'''
             <h4 style="color: #ff6f61" >Elipse del dron-RUT ({rut})</h4>
             <p>Con el Rut Extrajimos los sig. datos y con ellos obtenemos nuevos datos.</p>
-            <p>h = {elipse.h} k = {elipse.k} a = {elipse.a}  b = {elipse.b}</p>
+            <p>h = {elipse.h} ; k = {elipse.k} ; a = {elipse.a} ; b = {elipse.b}</p>
             <div class="block">
                 <div class="row-flex">
                     <div class="scroll-inner">
@@ -61,11 +61,10 @@ def Mostrar_datos_encapsulado_elipse(elipse, rut):
 def mostrar_datos(elipses, ruts_limpios):
     st.markdown("---")
     
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3 = st.tabs([
         "Datos de elipses", 
         "Gráficos y Colisiones", 
         "Resolución de Colisiones",
-        "Trayectorias Seguras"
     ])
     
     with tab1:
@@ -94,5 +93,3 @@ def mostrar_datos(elipses, ruts_limpios):
         mostrar_analisis_colisiones(elipses, ruts_limpios)
     with tab3:
         mostrar_resolucion_colisiones(elipses, ruts_limpios)
-    with tab4:
-        mostrar_trayectorias_seguras(elipses, ruts_limpios)

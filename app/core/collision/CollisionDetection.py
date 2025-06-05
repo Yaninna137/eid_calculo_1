@@ -7,9 +7,7 @@ from math import sqrt, cos, sin, pi
 from core.Math_ellipse import Elipse
 
 def distancia_centros(e1: Elipse, e2: Elipse, dimensiones: int = 2) -> float:
-    """
-    Calcula la distancia euclidiana entre los centros de dos elipses.
-    """
+    # Calcula la distancia euclidiana entre centros de dos elipses
     dx = e1.h - e2.h
     dy = e1.k - e2.k
     
@@ -84,7 +82,7 @@ def punto_dentro_de_elipse(x, y, elipse):
     dx = x - elipse.h
     dy = y - elipse.k
     
-    # Aplicar la ecuación de la elipse
+    # Aplicar la ecuación de la elipse 
     if elipse.orientacion == "horizontal":
         valor = (dx**2)/(elipse.a**2) + (dy**2)/(elipse.b**2)
     else:

@@ -4,13 +4,8 @@ Módulo para el análisis detallado de colisiones entre elipses
 Utiliza las funciones mejoradas de CollisionDetection
 """
 from math import pi
-from .CollisionDetection import (
-    distancia_centros, 
-    hay_colision_mejorada, 
-    hay_colision_precisa,
-    distancia_minima_entre_elipses,
-    punto_dentro_de_elipse
-)
+from .CollisionDetection import (distancia_centros, hay_colision_mejorada, hay_colision_precisa,
+    distancia_minima_entre_elipses, punto_dentro_de_elipse)
 
 def tipo_colision(elipse1, elipse2):
     """
@@ -22,7 +17,7 @@ def tipo_colision(elipse1, elipse2):
     # Usar la función mejorada de distancia entre centros
     distancia_centros_val = distancia_centros(elipse1, elipse2)
     
-    # Radios efectivos
+    # Radios efectivos, se estima el el radio medio (a+b)/2
     radio_efectivo_1 = (elipse1.a + elipse1.b) / 2
     radio_efectivo_2 = (elipse2.a + elipse2.b) / 2
     
@@ -60,7 +55,7 @@ def analizar_colision_detallada(elipse1, elipse2):
     suma_radios_minimos = radio_min_1 + radio_min_2
     diferencia_radios = abs(radio_max_1 - radio_max_2)
     
-    # Porcentaje de solapamiento aproximado
+    # Porcentaje de solapamiento aproximado (R1+R2-d)/(R1+R2)*100
     if distancia_centros_val < suma_radios_maximos:
         solapamiento = ((suma_radios_maximos - distancia_centros_val) / suma_radios_maximos) * 100
     else:

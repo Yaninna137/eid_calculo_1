@@ -1,6 +1,5 @@
 import streamlit as st
-from components.simulador import (analizar_colisiones_detallado, resolver_colisiones_multiples, 
-                                  generar_trayectorias_seguras, analizar_precision_avanzada)
+from components.simulador import (analizar_colisiones_detallado, resolver_colisiones_multiples)
 from core.Graph_ellipse import Grafico_3D_multiple, grafico_2d_interactivo
 from core.collision.CollisionAnalysis import tipo_colision, analizar_colision_detallada
 from components.Contenedor import encabezado_html
@@ -131,88 +130,3 @@ def mostrar_resolucion_colisiones(elipses, ruts_limpios):
             st.success(f"🎉 Configuración completamente segura: {len(elipses)} drones sin colisiones")
         else:
             st.error(f"⚠️ Aún quedan {colisiones_restantes} colisiones por resolver")
-
-
-def mostrar_trayectorias_seguras(elipses, ruts_limpios):
-    """Nueva pestaña para trayectorias seguras"""
-    st.markdown(encabezado_html("Generación de trayectorias seguras", "Calcula rutas de vuelo que evitan colisiones entre drones"), unsafe_allow_html=True)
-    
-    # Configuración de trayectorias
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        puntos_trayectoria = st.slider("Puntos por trayectoria", 50, 500, 100, step=50, key="puntos_trayectoria")
-    with col2:
-        margen_seguridad = st.slider("Margen de seguridad", 1.0, 2.0, 1.2, step=0.1, key="margen_seguridad")
-    with col3:
-        generar_trayectorias = st.button("🛤️ Generar Trayectorias", type="primary", key="btn_generar_trayectorias")
-    
-    if generar_trayectorias:
-        st.session_state.mostrar_trayectorias = True
-        
-        with st.spinner("Generando trayectorias seguras..."):
-            trayectorias = generar_trayectorias_seguras(elipses, ruts_limpios, puntos_trayectoria)
-            # Guardar en session_state
-            st.session_state.trayectorias_generadas = trayectorias
-    
-    # Mostrar trayectorias si existen en session_state
-    if st.session_state.mostrar_trayectorias and st.session_state.trayectorias_generadas:
-        trayectorias = st.session_state.trayectorias_generadas
-        
-        st.success(f"✅ Generadas {len(trayectorias)} trayectorias seguras")
-        
-        # Mostrar métricas de trayectorias
-        st.markdown("### Métricas de Trayectorias")
-        
-        # Crear columnas dinámicas basadas en el número de trayectorias
-        num_cols = min(len(trayectorias), 4)  # Máximo 4 columnas
-        cols = st.columns(num_cols)
-        
-        for i, trayectoria in enumerate(trayectorias):
-            with cols[i % num_cols]:
-                st.metric(
-                    f"Dron {trayectoria['rut']}", 
-                    f"{trayectoria['longitud_trayectoria']} unidades",
-                    f"{trayectoria['numero_puntos']} puntos"
-                )
-        
-        # Visualización de trayectorias (esto requeriría modificar las funciones de gráficos)
-        st.markdown("### Visualización de Trayectorias")
-        st.info("💡 Las trayectorias se muestran como rutas optimizadas que evitan las zonas de colisión entre elipses")
-        
-        # Mostrar detalles expandibles para cada trayectoria
-        for trayectoria in trayectorias:
-            with st.expander(f"Detalles de trayectoria - Dron {trayectoria['rut']}"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"**Longitud total:** {trayectoria['longitud_trayectoria']} unidades")
-                    st.write(f"**Número de puntos:** {trayectoria['numero_puntos']}")
-                    st.write(f"**Elipse original:** Centro ({trayectoria['elipse_original'].h}, {trayectoria['elipse_original'].k})")
-                
-                with col2:
-                    # Aquí podrías mostrar un gráfico específico de la trayectoria
-                    st.write("**Primeros 5 puntos de la trayectoria:**")
-                    for i, punto in enumerate(trayectoria['trayectoria'][:5]):
-                        st.write(f"{i+1}. ({punto[0]:.2f}, {punto[1]:.2f})")
-
-    # Sección de análisis avanzado (opcional)
-    if st.checkbox("🔬 Mostrar análisis de precisión avanzada", key="checkbox_precision_avanzada"):
-        with st.spinner("Ejecutando análisis avanzado..."):
-            precision_avanzada = analizar_precision_avanzada(elipses, ruts_limpios)
-        
-        st.markdown("### Análisis de Precisión Avanzada")
-        
-        # Mostrar información de librerías
-        info_libs = precision_avanzada['info_librerias']
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            estado_shapely = "✅ Disponible" if info_libs['shapely'] else "❌ No disponible"
-            st.write(f"**Shapely:** {estado_shapely}")
-        with col2:
-            estado_numpy = "✅ Disponible" if info_libs['numpy'] else "❌ No disponible"
-            st.write(f"**NumPy:** {estado_numpy}")
-        with col3:
-            st.write(f"**Comparaciones:** {precision_avanzada['comparaciones_realizadas']}")
-        
-        if not info_libs['shapely'] or not info_libs['numpy']:
-            st.info(f"💡 {info_libs['recomendacion']}")
