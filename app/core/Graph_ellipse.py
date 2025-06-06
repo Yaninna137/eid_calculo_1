@@ -140,8 +140,18 @@ def grafico_2d_interactivo(elipses: list, ruts_limpios: list, escala=1.0):
         plot_bgcolor='#121212',
         paper_bgcolor='#121212',
         font=dict(color='#FFFFFF', size=12),
-        xaxis=dict(title="Eje X", gridcolor="#2A2A2A"),
-        yaxis=dict(title="Eje Y", gridcolor="#2A2A2A", scaleanchor="x", scaleratio=1),
+        xaxis=dict(
+            title="Eje X", 
+            gridcolor="#2A2A2A",  # ← AÑADE ESTA LÍNEA
+            showgrid=True         # ← Y ESTA TAMBIÉN (opcional, pero explícito)
+        ),
+        yaxis=dict(
+            title="Eje Y", 
+            gridcolor="#2A2A2A", 
+            scaleanchor="x", 
+            scaleratio=1,
+            showgrid=True         # ← OPCIONAL: para ser explícito
+        ),
         legend=dict(bgcolor='#121212', bordercolor='#AAAAAA', borderwidth=1)
     )
     

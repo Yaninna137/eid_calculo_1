@@ -3,7 +3,6 @@ from core.Items_ellipse import ElipseVisual
 from core.Graph_ellipse import grafico_2d_simple
 from components.Contenedor import encabezado_html
 from .analysis import mostrar_analisis_colisiones, mostrar_resolucion_colisiones
-
 def Mostrar_datos_encapsulado_elipse(elipse, rut):
     try:
         e_canonica = elipse.ecuacion_canonica()
@@ -58,7 +57,7 @@ def Mostrar_datos_encapsulado_elipse(elipse, rut):
     except Exception as e:
         st.error(f"Error al procesar los datos de la elipse: {e}")
 
-def mostrar_datos(elipses, ruts_limpios):
+def mostrar_datos(elipses, ruts_limpios):    
     st.markdown("---")
     
     tab1, tab2, tab3 = st.tabs([
@@ -76,8 +75,12 @@ def mostrar_datos(elipses, ruts_limpios):
 
             with col2:
                 st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
-                Mostrar_datos_encapsulado_elipse(elipse, ruts_limpios[idx])
-                st.markdown('</div>', unsafe_allow_html=True)
+                try:
+                    Mostrar_datos_encapsulado_elipse(elipse, ruts_limpios[idx])
+                except Exception as e:
+                    st.error(f"Error al mostrar datos: {e}")
+                finally:
+                    st.markdown('</div>', unsafe_allow_html=True)
 
             with col1:
                 img_base64 = grafico_2d_simple(elipse)
