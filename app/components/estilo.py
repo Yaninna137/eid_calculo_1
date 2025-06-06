@@ -24,7 +24,7 @@ def estilo_add():
             color: white;
             font-size: 14px;
             line-height: 1.6;   
-            max-height: 150px;
+            max-height: 300px;
             overflow-y: auto;
             padding-right: 10px;
             flex: 2;  /* columna de texto más ancha */
