@@ -13,10 +13,11 @@ def procesar_ruts(ruts):
     """
     elipses = []
     errores = []
+    par_impar = True if len(ruts) % 2 == 0 else False
 
     for rut in ruts:
         try:
-            elipse = generar_elipse_desde_rut(rut)
+            elipse = generar_elipse_desde_rut(rut,par_impar)
             elipses.append(elipse)
         except Exception as e:
             errores.append(f"{rut}: {e}")
