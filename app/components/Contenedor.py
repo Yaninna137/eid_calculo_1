@@ -28,13 +28,14 @@ def mostrar_tarjeta_izquierda():
                 font-size: 14px;
                 line-height: 1.6;
             ">
-                <h4 style="margin-top: 0; color: #FF4B4B;">STDR</h4>
-                <p>La app STDR permite simular trayectorias elipsoidales para drones. Incluye:</p>
+                <h4 style="margin-top: 0; color: #FF4B4B;">STD-RUT</h4>
+                <p>La app STD-RUT permite simular trayectorias elipsoidales para drones. Incluye:</p>
                 <ul>
-                    <li>Generación de elipses a partir del RUT</li>
-                    <li>Visualización 2D y 3D</li>
-                    <li>Detección de colisiones</li>
-                    <li>Herramientas de análisis y verificación</li>
+                    <li>Generación de elipses a partir del RUT.</li>
+                    <li>Visualización 2D y 3D interactivos y detallados.</li>
+                    <li>Advertencia de detección de colisiones.</li>
+                    <li>Herramientas de análisis y verificación.</li>
+                    <li>Análisis y planteamiento de trayectorias libres de colisión.</li>
                 </ul>
             </div>
         </div>

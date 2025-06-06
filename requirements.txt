@@ -1,4 +1,4 @@
-# Archivo: requirements.txt actuales 
+# Librerias necesarias para la ejecución:
 streamlit
 numpy
 matplotlib
