@@ -121,9 +121,15 @@ Para ejecutar este proyecto localmente, sigue los pasos a continuación:
 ## 🚀 Como Ejecutar
 
 ### Opción 1 - Ejecutar la app desde el navegador
-Copiando y pegando este link en tu navegador cargará el programa, operando sin complicaciones.
-```
-https://yaninna137.github.io/eid_calculo_1/
+
+Esta aplicación ha sido desplegada utilizando **[Streamlit Cloud](https://streamlit.io/)**, una plataforma que permite ejecutar aplicaciones de Python directamente desde el navegador, sin necesidad de instalaciones locales.
+
+Gracias a Streamlit, el usuario puede interactuar con la herramienta de forma simple y eficiente desde cualquier dispositivo conectado a Internet.
+
+🔗 **Accede a la app desde este enlace:**
+
+[https://eidcalculo1-5gbdyvghi4a8plrsrvzmp9.streamlit.app/](https://eidcalculo1-5gbdyvghi4a8plrsrvzmp9.streamlit.app/)
+
 ```
 ### Opción 2 - Ejecutar la app desde el ordenador(código fuente)
 En caso de haber clonado e instalado las dependencias. Se realiza el sig. comando para ejecutar.
