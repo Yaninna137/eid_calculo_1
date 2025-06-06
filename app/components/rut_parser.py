@@ -7,7 +7,6 @@ Este manejará:
 Validación y generación de RUT
 '''
 
-import re
 from core.rut_aleatorio import generar_varios_ruts
 
 def limpiar_ruts(texto):
