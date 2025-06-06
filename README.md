@@ -118,6 +118,7 @@ Para ejecutar este proyecto localmente, sigue los pasos a continuación:
   ```
   pip install -r requirements.txt
   ```
+
 ## 🚀 Como Ejecutar
 
 ### Opción 1 - Ejecutar la app desde el navegador
@@ -130,7 +131,6 @@ Gracias a Streamlit, el usuario puede interactuar con la herramienta de forma si
 
 [https://eidcalculo1-5gbdyvghi4a8plrsrvzmp9.streamlit.app/](https://eidcalculo1-5gbdyvghi4a8plrsrvzmp9.streamlit.app/)
 
-```
 ### Opción 2 - Ejecutar la app desde el ordenador(código fuente)
 En caso de haber clonado e instalado las dependencias. Se realiza el sig. comando para ejecutar.
 
