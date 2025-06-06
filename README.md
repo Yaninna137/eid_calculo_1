@@ -98,7 +98,7 @@ El proyecto está a cargo de estudiantes de Ingeniería Civil Informática, quie
 - **Plotly** – Visualizaciones dinámicas 2D y 3D
 - **Matplotlib** – Gráficos estáticos
 - **NumPy** – Cálculos matemáticos de bajo nivel
-- **Math** – manejo de las formulas(cos,sen,pi,etc)
+- **Math** – manejo de las fórmulas(cos,sen,pi,etc)
 - **Io** – manejo en el flujo de datos
 - **Base64** – combertir excel a streamlit
 - **Random** - Generar valores aleatorio
@@ -121,12 +121,13 @@ Para ejecutar este proyecto localmente, sigue los pasos a continuación:
 ## 🚀 Como Ejecutar
 
 ### Opción 1 - Ejecutar la app desde el navegador
-Copiando y pegando este link en tu navegador cargará el programa, operarando sin complicacipones.
+Copiando y pegando este link en tu navegador cargará el programa, operando sin complicaciones.
 ```
 https://yaninna137.github.io/eid_calculo_1/
 ```
 ### Opción 2 - Ejecutar la app desde el ordenador(código fuente)
-En caso de haber clonado y instalado las dependcias. Se realiza el sig. comando para ejecutar.
+En caso de haber clonado e instalado las dependencias. Se realiza el sig. comando para ejecutar.
+
 ```
 streamlit run app/main.py
 ```
