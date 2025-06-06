@@ -38,7 +38,7 @@ def Mostrar_datos_encapsulado_elipse(elipse, rut):
                             <li><b>Focos</b> = F1: {f1_str} ; F2: {f2_str}</li>
                             <li><b>Vertices P.</b> = V1{elementos['vertices_principales'][0]} ; V2{elementos['vertices_principales'][1]}</li>
                             <li><b>Vertices A.</b> = B1{elementos['vertices_secundarios'][0]} ; B2{elementos['vertices_secundarios'][1]}</li>
-                            <li><b>c = √a² - b²</b> = {elementos['c']}</li>
+                            <li><b>Distancia focal = √a² - b²</b> = {elementos['c']}</li>
                             <li><b>Eje mayor 2a</b> = {elementos['eje_mayor']}</li>
                             <li><b>Eje menor 2b</b> = {elementos['eje_menor']}</li>
                             <li><b>Eje focal 2c</b> = {elementos['eje_focal']}</li>
@@ -83,9 +83,11 @@ def mostrar_datos(elipses, ruts_limpios):
                 img_base64 = grafico_2d_simple(elipse)
                 st.markdown(
                     f"""
-                    <div style="text-align: center;">
-                        <img src="data:image/png;base64,{img_base64}" width="400", height=400"/>
-                        <span style='font-size: 18px; color: gray; display: block; margin-top: 8px;'>Gráfica 2D</span>
+                    <div style="display: flex; justify-content: center;">
+                        <div style="text-align: center; margin-top: 50px;">
+                            <img src="data:image/png;base64,{img_base64}" width="400" height="400" />
+                            <span style="font-size: 18px; color: gray; display: block; margin-top: 8px;">Gráfica 2D</span>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True) 
     

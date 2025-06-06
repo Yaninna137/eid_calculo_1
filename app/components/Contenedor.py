@@ -106,17 +106,21 @@ def mostrar_columna_acciones(ruts_limpios):
 
 # 💡 Agrega esta función para validar los RUTs ingresados
 def obtener_ruts_validos_y_invalidos(texto_input):
-    ruts_limpios = limpiar_ruts(texto_input)
+    ruts_limpios, ruts_cortos = limpiar_ruts(texto_input)
     ruts_validos = [rut for rut in ruts_limpios if es_rut_valido(rut)]
     ruts_invalidos = [rut for rut in ruts_limpios if not es_rut_valido(rut)]
-    return ruts_validos, ruts_invalidos
+    return ruts_validos, ruts_invalidos, ruts_cortos
 
 
 # ✅ Lógica de integración completa
 def ejecutar_interfaz():
     mostrar_tarjeta_izquierda()
     texto_ruts = mostrar_entrada_ruts()
-    ruts_validos, ruts_invalidos = obtener_ruts_validos_y_invalidos(texto_ruts)
+    ruts_validos, ruts_invalidos, ruts_cortos = obtener_ruts_validos_y_invalidos(texto_ruts)
+
+    # Mostrar mensaje para RUTs muy cortos
+    if ruts_cortos:
+        st.info(f"RUTs muy cortos (requieren al menos 7 dígitos): {', '.join(ruts_cortos)}")
 
     if ruts_invalidos:
         st.warning(f"RUTs inválidos detectados: {', '.join(ruts_invalidos)}")

@@ -25,7 +25,11 @@ def mostrar_interfaz():
 
     with col_der:
         ruts_input = mostrar_entrada_ruts()
-        ruts_limpios = limpiar_ruts(ruts_input)
+        ruts_limpios, ruts_cortos = limpiar_ruts(ruts_input)
+        
+        # Mostrar mensaje para RUTs muy cortos
+        if ruts_cortos:
+            st.info(f"RUTs muy cortos (requieren al menos 7 dígitos): {', '.join(ruts_cortos)}")
         
         if mostrar_columna_acciones(ruts_limpios):
             elipses, errores = procesar_ruts(ruts_limpios)

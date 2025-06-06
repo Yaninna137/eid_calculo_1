@@ -75,9 +75,16 @@ class Elipse:
         return puntos
 
 def generar_elipse_desde_rut(rut: str, grupo_impar=True) -> Elipse:
+    """
+    Genera una elipse a partir de los primeros 8 dígitos del RUT,
+    siguiendo las reglas del proyecto MAT1186.
+    """
     digitos = [int(c) for c in rut if c.isdigit()]
     if len(digitos) < 8:
         raise ValueError("El RUT debe tener al menos 8 dígitos.")
+
+    # Tomar solo los primeros 8
+    digitos = digitos[:8]
 
     h, k = digitos[0], digitos[1]
 
@@ -89,8 +96,7 @@ def generar_elipse_desde_rut(rut: str, grupo_impar=True) -> Elipse:
         a_raw = digitos[5] + digitos[6]
         b_raw = digitos[7] + digitos[2]
         orientacion = "horizontal" if digitos[3] % 2 == 0 else "vertical"
-
+    
     # Asegurar que a sea mayor o igual que b
     a, b = sorted([a_raw, b_raw], reverse=True)
-
     return Elipse(h, k, a, b, orientacion)
